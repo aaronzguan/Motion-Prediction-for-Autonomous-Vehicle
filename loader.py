@@ -9,9 +9,7 @@ import numpy as np
 
 
 class lyft_loader:
-    def __init__(self, name, data_path, cfg_path):
-        os.environ["L5KIT_DATA_FOLDER"] = data_path
-        cfg = load_config_data(cfg_path)
+    def __init__(self, name, cfg):
         dm = LocalDataManager(None)
 
         if name == 'train':
@@ -44,6 +42,9 @@ class lyft_loader:
         self.dataloader = DataLoader(dataset, shuffle=loader_cfg["shuffle"], batch_size=loader_cfg["batch_size"],
                                      num_workers=loader_cfg["num_workers"])
         self.loader_iter = iter(self.dataloader)
+
+    def get_loader(self):
+        return self.dataloader
 
     def next(self):
         try:

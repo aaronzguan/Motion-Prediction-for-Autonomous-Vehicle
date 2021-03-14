@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 
-def neg_multi_log_likelihood(gt, pred, confidences, avails):
+def neg_multi_log_likelihood(gt, pred, confidences, avails, reduce_mean=True):
     """
     Compute a negative log-likelihood for the multi-modal scenario.
     log-sum-exp trick is used here to avoid underflow and overflow, For more information about it see:
@@ -43,17 +43,20 @@ def neg_multi_log_likelihood(gt, pred, confidences, avails):
 
     with np.errstate(divide="ignore"):  # when confidence is 0 log goes to -inf, but we're fine with it
         # error (batch_size, num_modes)
-        error = torch.log(confidences) - 0.5 * torch.sum(error, dim=-1)  # reduce time
+        error = torch.log(confidences + 1e-16) - 0.5 * torch.sum(error, dim=-1)  # reduce time
 
     # use max aggregator on modes for numerical stability
     # error (batch_size, num_modes)
     max_value, _ = error.max(dim=1, keepdim=True)  # error are negative at this point, so max() gives the minimum one
     error = -torch.log(torch.sum(torch.exp(error - max_value), dim=-1, keepdim=True)) - max_value  # reduce modes
     # print("error", error)
-    return error
+    if reduce_mean:
+        return torch.mean(error)
+    else:
+        return error
 
 
-def pytorch_neg_multi_log_likelihood_single(gt, pred, avails):
+def neg_multi_log_likelihood_single(gt, pred, avails):
     """
     Args:
         gt (Tensor): array of shape (bs)x(time)x(2D coords)
@@ -102,4 +105,4 @@ def custom_angle_loss(gt, pred, avails, device, penalize=1.25):
 
     yaws.to(device).detach()
 
-    return (pytorch_neg_multi_log_likelihood_batch(gt, pred.unsqueeze(1), confidences, avails) * yaws).mean()
+    return (neg_multi_log_likelihood(gt, pred.unsqueeze(1), confidences, avails) * yaws).mean()

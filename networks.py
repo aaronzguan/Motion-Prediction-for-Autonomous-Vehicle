@@ -15,110 +15,65 @@ class Flatten(nn.Module):
         return input.view(input.size(0), -1)
 
 
-def resnet28(feature_dim, use_pool, use_dropout):
-    class ResBlock(nn.Module):
-        def __init__(self, channels):
-            super(ResBlock, self).__init__()
-            self.resblock = nn.Sequential(
-                nn.Conv2d(channels, channels, kernel_size=3, padding=1),
-                nn.PReLU(channels),
-                nn.Conv2d(channels, channels, kernel_size=3, padding=1),
-                nn.PReLU(channels)
-            )
-        def forward(self, x):
-            return x + self.resblock(x)
+class ResBlock(nn.Module):
+    def __init__(self, channels):
+        super(ResBlock, self).__init__()
+        self.resblock = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+            nn.PReLU(channels),
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+            nn.PReLU(channels)
+        )
 
-    filters = [64, 128, 256, 512]
-    units = [1, 2, 5, 3]
-    net_list = []
-    for i, (num_units, num_filters) in enumerate(zip(units, filters)):
-        if i == 0:
-            net_list += [nn.Conv2d(3, 64, 3),
-                         nn.PReLU(64),
-                         nn.Conv2d(64, 64, 3),
-                         nn.PReLU(64),
-                         nn.MaxPool2d(2)]
-        elif i == 1:
-            net_list += [nn.Conv2d(64, 128, 3),
-                         nn.PReLU(128),
-                         nn.MaxPool2d(2)]
-        elif i == 2:
-            net_list += [nn.Conv2d(128, 256, 3),
-                         nn.PReLU(256),
-                         nn.MaxPool2d(2)]
-        elif i == 3:
-            net_list += [nn.Conv2d(256, 512, 3),
-                         nn.PReLU(512),
-                         nn.MaxPool2d(2)]
-        if num_units > 0:
-            net_list += [Make_layer(ResBlock, num_filters=num_filters, num_of_layer=num_units)]
-    if use_pool:
-        net_list += [nn.AdaptiveAvgPool2d((1, 1))]
-    net_list += [Flatten()]
-    if use_dropout:
-        net_list += [nn.Dropout()]
-    if use_pool:
-        net_list += [nn.Linear(512, feature_dim)]
-    else:
-        net_list += [nn.Linear(512*5*4, feature_dim)]
-    return nn.Sequential(*net_list)
+    def forward(self, x):
+        return x + self.resblock(x)
 
 
-def spherenet(num_layers, feature_dim, use_pool, use_dropout, use_lbp):
-    """SphereNets.
-    We follow the paper, and the official caffe code:
-        SphereFace: Deep Hypersphere Embedding for Face Recognition, CVPR, 2017.
-        https://github.com/wy1iu/sphereface
-    """
-    class SphereResBlock(nn.Module):
-        def __init__(self, channels):
-            super(SphereResBlock, self).__init__()
-            self.resblock = nn.Sequential(
-                nn.Conv2d(channels, channels, kernel_size=3, padding=1),
-                nn.PReLU(channels),
-                nn.Conv2d(channels, channels, kernel_size=3, padding=1),
-                nn.PReLU(channels)
-            )
+class resnet28(nn.Module):
+    def __init__(self, in_channel, image_size, out_features, use_pool, use_dropout):
+        super().__init__()
+        filters = [64, 128, 256, 512]
+        units = [1, 2, 5, 3]
+        net_list = []
+        for i, (num_units, num_filters) in enumerate(zip(units, filters)):
+            if i == 0:
+                net_list += [nn.Conv2d(in_channel, 64, 3),
+                             nn.PReLU(64),
+                             nn.Conv2d(64, 64, 3),
+                             nn.PReLU(64),
+                             nn.MaxPool2d(2)]
+            elif i == 1:
+                net_list += [nn.Conv2d(64, 128, 3),
+                             nn.PReLU(128),
+                             nn.MaxPool2d(2)]
+            elif i == 2:
+                net_list += [nn.Conv2d(128, 256, 3),
+                             nn.PReLU(256),
+                             nn.MaxPool2d(2)]
+            elif i == 3:
+                net_list += [nn.Conv2d(256, 512, 3),
+                             nn.PReLU(512),
+                             nn.MaxPool2d(2)]
+            if num_units > 0:
+                net_list += [Make_layer(ResBlock, num_filters=num_filters, num_of_layer=num_units)]
+        if use_pool:
+            net_list += [nn.AdaptiveAvgPool2d((1, 1))]
+        net_list += [Flatten()]
+        if use_dropout:
+            net_list += [nn.Dropout()]
+        if use_pool:
+            net_list += [nn.Linear(512, 1024)]
+        else:
+            output_size = image_size // 16
+            net_list += [nn.Linear(512 * output_size * output_size, 1024)]
 
-        def forward(self, x):
-            return x + self.resblock(x)
+        self.backbone = nn.Sequential(*net_list)
+        self.pred_pos = nn.Linear(1024, out_features=out_features)     # 100 + confidence?
 
-    filters = [64, 128, 256, 512]
-    if num_layers == 4:
-        units = [0, 0, 0, 0]
-    elif num_layers == 10:
-        units = [0, 1, 2, 0]
-    elif num_layers == 20:
-        units = [1, 2, 4, 1]
-    elif num_layers == 36:
-        units = [2, 4, 8, 2]
-    elif num_layers == 64:
-        units = [3, 8, 16, 3]
-    net_list = []
-    for i, (num_units, num_filters) in enumerate(zip(units, filters)):
-        if i == 0:
-            if use_lbp:
-                net_list += [nn.Conv2d(1, 64, 3, 2, 1), nn.PReLU(64)]
-            else:
-                net_list += [nn.Conv2d(3, 64, 3, 2, 1), nn.PReLU(64)]
-        elif i == 1:
-            net_list += [nn.Conv2d(64, 128, 3, 2, 1), nn.PReLU(128)]
-        elif i == 2:
-            net_list += [nn.Conv2d(128, 256, 3, 2, 1), nn.PReLU(256)]
-        elif i == 3:
-            net_list += [nn.Conv2d(256, 512, 3, 2, 1), nn.PReLU(512)]
-        if num_units > 0:
-            net_list += [Make_layer(SphereResBlock, num_filters=num_filters, num_of_layer=num_units)]
-    if use_pool:
-        net_list += [nn.AdaptiveAvgPool2d((1, 1))]
-    net_list += [Flatten()]
-    if use_dropout:
-        net_list += [nn.Dropout()]
-    if use_pool:
-        net_list += [nn.Linear(512, feature_dim)]
-    else:
-        net_list += [nn.Linear(512*7*6, feature_dim)]
-    return nn.Sequential(*net_list)
+    def forward(self, x):
+        x = self.backbone(x)
+        pred_pos = self.pred_pos(x)
+        return pred_pos
 
 
 def densenet121(feature_dim, use_pool, use_dropout):

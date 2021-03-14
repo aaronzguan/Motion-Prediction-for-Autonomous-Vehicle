@@ -4,10 +4,11 @@ format_version: 4
 ###################
 ## Model options
 model_params:
-  model_architecture: "resnet50"
-  loss: ""
+  model_architecture: "resnet28"
+  loss: "NLL"
+  use_cuda: True
 
-  history_num_frames: 0
+  history_num_frames: 50
   future_num_frames: 50
   step_time: 0.1
 
@@ -56,7 +57,7 @@ train_data_loader:
   num_workers: 16
 
 val_data_loader:
-  key: "scenes/sample.zarr"
+  key: "scenes/validate.zarr"
   num_frames_to_chop: 100
   batch_size: 12
   shuffle: False
@@ -65,6 +66,12 @@ val_data_loader:
 ###################
 ## Train params
 train_params:
-  checkpoint_every_n_steps: 10000
-  max_num_steps: 10
+  epochs: 10
+  continue_epoch: -1
+  lr: 1e-2
+  scheduler: "steps"
+  scheduler_period: 16
+  scheduler_t_mult: 1.41421
+  optimizer_milestones: [24, 48, 56, 60]
+  check_freq: 10000
   eval_every_n_steps: 10000
