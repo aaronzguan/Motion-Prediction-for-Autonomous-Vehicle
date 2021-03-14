@@ -48,7 +48,6 @@ class CreateModel:
 
         # Attach to device
         self.model.to(self.device)
-        self.criterion.to(self.device)
 
         self.state_names = ['loss', 'lr']
 
@@ -86,7 +85,7 @@ class CreateModel:
 
     def optimize_parameters(self, data):
         inputs = data["image"].to(self.device)
-        target_availabilities = data["target_availabilities"].unsqueeze(-1).to(self.device)
+        target_availabilities = data["target_availabilities"].to(self.device)
         targets = data["target_positions"].to(self.device)
         # Forward pass
         outputs = self.model(inputs).reshape(targets.shape)

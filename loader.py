@@ -1,4 +1,3 @@
-from utils import load_config_data
 from l5kit.data import LocalDataManager, ChunkedDataset
 from l5kit.dataset import AgentDataset
 from l5kit.rasterization import build_rasterizer
