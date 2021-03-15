@@ -52,27 +52,28 @@ raster_params:
 ## Data loader options
 train_data_loader:
   key: "scenes/train.zarr"
-  batch_size: 12
+  batch_size: 24
   shuffle: True
-  num_workers: 0
+  num_workers: 4
 
 val_data_loader:
   key: "scenes/validate.zarr"
   num_frames_to_chop: 100
-  batch_size: 12
+  batch_size: 24
   shuffle: False
-  num_workers: 0
+  num_workers: 4
 
 ###################
 ## Train params
 train_params:
-  epochs: 2
+  epochs: 70
   continue_epoch: -1
-  lr: 0.01
+  lr: 0.0001
   scheduler: "steps"
-  scheduler_period: 16
-  scheduler_t_mult: 1.41421
-  optimizer_milestones: [24, 48, 56, 60]
-  log_every_n_step: 10
+  step_gamma: 0.2   # For the gamma in step scheduler
+  scheduler_period: 16  # For CosineAnnealingRestart scheduler
+  scheduler_t_mult: 1.41421 # For CosineAnnealingRestart scheduler
+  optimizer_milestones: [24, 48, 56, 60]  # The step milestone for multi-step scheduler
+  log_every_n_step: 3000
   check_freq: 1
   eval_freq: 10000

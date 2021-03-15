@@ -59,7 +59,7 @@ class CreateModel:
         if self.train_params.scheduler == "steps":
             self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer,
                                                             milestones=self.train_params.optimizer_milestones,
-                                                            gamma=0.2,
+                                                            gamma=self.train_params.step_gamma,
                                                             last_epoch=self.train_params.continue_epoch)
         elif self.train_params.scheduler == "CosineAnnealingLR":
             self.scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
@@ -75,7 +75,7 @@ class CreateModel:
         else:
             raise RuntimeError("Invalid scheduler name")
 
-        self.model.apply(weights_init)
+        # self.model.apply(weights_init)
         # Switch to training mode
         self.model.train()
 
@@ -89,7 +89,7 @@ class CreateModel:
         targets = data["target_positions"].to(self.device)
         # Forward pass
         outputs = self.model(inputs).reshape(targets.shape)
-        self.loss = self.criterion(outputs, targets, target_availabilities)
+        self.loss = self.criterion(targets.float(), outputs.float(), target_availabilities.float())
 
         self.optimizer.zero_grad()
         self.loss.backward()

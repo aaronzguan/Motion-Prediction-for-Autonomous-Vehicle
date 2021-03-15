@@ -41,14 +41,12 @@ def neg_multi_log_likelihood(gt, pred, confidences, avails, reduce_mean=True):
     # error (batch_size, num_modes, future_len)
     error = torch.sum(((gt - pred) * avails) ** 2, dim=-1)  # reduce coords and use availability
 
-    with np.errstate(divide="ignore"):  # when confidence is 0 log goes to -inf, but we're fine with it
-        # error (batch_size, num_modes)
-        error = torch.log(confidences + 1e-16) - 0.5 * torch.sum(error, dim=-1)  # reduce time
-
-    # use max aggregator on modes for numerical stability
     # error (batch_size, num_modes)
-    max_value, _ = error.max(dim=1, keepdim=True)  # error are negative at this point, so max() gives the minimum one
-    error = -torch.log(torch.sum(torch.exp(error - max_value), dim=-1, keepdim=True)) - max_value  # reduce modes
+    error = confidences + 1e-16 - 0.5 * torch.sum(error, dim=-1)  # reduce time
+
+    # error (batch_size, num_modes)
+    error = -torch.logsumexp(error, dim=1, keepdim=True)
+
     # print("error", error)
     if reduce_mean:
         return torch.mean(error)
