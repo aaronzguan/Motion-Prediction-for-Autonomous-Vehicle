@@ -7,7 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 import validate
 
 if __name__ == '__main__':
-    L5KIT_DATA_FOLDER = os.path.abspath("/mnt/data/lyft-data")
+    L5KIT_DATA_FOLDER = os.path.abspath("/home/ubuntu/lyft-data")
     os.environ["L5KIT_DATA_FOLDER"] = L5KIT_DATA_FOLDER
     cfg = load_config_data("./agent_motion_config.yaml")
     train_loader = lyft_loader(name="train", cfg=cfg).get_loader()
@@ -38,27 +38,25 @@ if __name__ == '__main__':
                 states = model.get_current_states()
                 logger.add_scalar('loss', states['loss'], iters)
                 logger.add_scalar('lr', states['lr'], iters)
-                description = 'Epoch: {} ({:.0f}%) '.format(epoch, 100 * batch_idx / len(train_loader))
+
+            if iters % train_params.check_freq == 0:
+                states = model.get_current_states()
+                description = 'Epoch {} ({:.0f}%) '.format(epoch, 100 * batch_idx / len(train_loader))
                 for name, value in states.items():
                     description += '{}: {:.4f} '.format(name, value)
                 data_iter.set_description(desc=description)
                 save_log(description, checkpoint_dir=model_params.checkpoints_dir)
+                model.save_model(iters, epoch)
 
             iters += 1
 
         if epoch % train_params.eval_freq == 0:
             # TODO: Implement the evaluation using validate dataset
             # validate.run(model, eval_params=eval_params, dataloader=val_loader)
+            # description = 'Eval Epoch: {}|{} '.format(epoch, train_params.epochs)
+            # pbar.set_description(desc=description)
+            # save_log(description, checkpoint_dir=model_params.checkpoints_dir)
             pass
-
-        if epoch % train_params.check_freq == 0:
-            states = model.get_current_states()
-            description = 'Train Epoch: {}|{} '.format(epoch, train_params.epochs)
-            for name, value in states.items():
-                description += '{}: {:.4f} '.format(name, value)
-            pbar.set_description(desc=description)
-            save_log(description, checkpoint_dir=model_params.checkpoints_dir)
-            model.save_model(epoch)
 
         model.scheduler_step()
 

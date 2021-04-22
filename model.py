@@ -54,7 +54,10 @@ class CreateModel:
     def train_setup(self, train_params):
         self.train_params = train_params
         self.lr = train_params.lr
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=5e-5, amsgrad=True)
+        if self.train_params.optimizer == "sgd":
+            self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, nesterov=True)
+        elif self.train_params.optimizer == "adam":
+            self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=5e-5, amsgrad=True)
 
         if self.train_params.scheduler == "steps":
             self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer,
@@ -93,6 +96,10 @@ class CreateModel:
 
         self.optimizer.zero_grad()
         self.loss.backward()
+
+        # Apply gradient clipping avoid gradient exploding
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.train_params.get("grad_clip", 2))
+
         self.optimizer.step()
 
     def get_current_states(self):
@@ -103,8 +110,8 @@ class CreateModel:
                 states_ret[name] = float(getattr(self, name))
         return states_ret
 
-    def save_model(self, which_epoch):
-        save_filename = '%s_%s.pth' % (self.model_params.model_architecture, which_epoch)
+    def save_model(self, which_step, which_epoch):
+        save_filename = '{}_step{}_epoch{}.pth'.format(self.model_params.model_architecture, which_step, which_epoch)
         save_path = os.path.join(self.model_params.checkpoints_dir, save_filename)
 
         if self.model_params.use_cuda and torch.cuda.is_available():

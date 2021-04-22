@@ -19,9 +19,9 @@ class lyft_loader:
         elif name == 'val':
             loader_cfg = cfg["val_data_loader"]
             zarr_path = dm.require(loader_cfg["key"])
-            chop_path = os.path.splitext(zarr_path)[0] + "_chopped_{}".format(loader_cfg["num_frames_to_chop"])
+            eval_base_path = os.path.splitext(zarr_path)[0] + "_chopped_{}".format(loader_cfg["num_frames_to_chop"])
 
-            if not os.path.exists(chop_path):
+            if not os.path.exists(eval_base_path):
                 eval_base_path = create_chopped_dataset(zarr_path,
                                                         cfg["raster_params"]["filter_agents_threshold"],
                                                         loader_cfg["num_frames_to_chop"],
