@@ -30,6 +30,8 @@ if __name__ == '__main__':
     iters = 0
     for epoch in pbar:
         model.train()
+        model.reset_running_states()
+
         data_iter = tqdm(train_loader, position=0, leave=True, ascii=True)
         for batch_idx, data in enumerate(data_iter):
             model.optimize_parameters(data)
@@ -41,7 +43,8 @@ if __name__ == '__main__':
 
             if iters % train_params.check_freq == 0:
                 states = model.get_current_states()
-                description = 'Epoch {} ({:.0f}%) '.format(epoch, 100 * batch_idx / len(train_loader))
+                description = 'Epoch {} Batch {}/{} ({:.0f}%) '.format(epoch, batch_idx, len(train_loader),
+                                                                       100 * batch_idx / len(train_loader))
                 for name, value in states.items():
                     description += '{}: {:.4f} '.format(name, value)
                 data_iter.set_description(desc=description)

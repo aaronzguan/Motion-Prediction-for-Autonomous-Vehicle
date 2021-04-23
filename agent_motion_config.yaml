@@ -75,6 +75,6 @@ train_params:
   scheduler_period: 16  # For CosineAnnealingRestart scheduler
   scheduler_t_mult: 1.41421 # For CosineAnnealingRestart scheduler
   optimizer_milestones: [24, 48, 56, 60]  # The step milestone for multi-step scheduler
-  log_every_n_step: 200
-  check_freq: 1000
+  log_every_n_step: 100
+  check_freq: 300
   eval_freq: 10000

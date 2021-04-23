@@ -49,15 +49,25 @@ class CreateModel:
         # Attach to device
         self.model.to(self.device)
 
+        self.lr = None
+        self.loss = 0
+        self.running_loss = 0
+        self.running_batch = 0
+
         self.state_names = ['loss', 'lr']
 
     def train_setup(self, train_params):
         self.train_params = train_params
         self.lr = train_params.lr
+        self.running_loss = 0
+        self.running_batch = 0
+
         if self.train_params.optimizer == "sgd":
             self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, nesterov=True)
         elif self.train_params.optimizer == "adam":
             self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=5e-5, amsgrad=True)
+        else:
+            raise RuntimeError("Invalid optimizer: {}".formate(self.train_params.optimizer))
 
         if self.train_params.scheduler == "steps":
             self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer,
@@ -76,7 +86,7 @@ class CreateModel:
                                                                             eta_min=self.lr / 1000.0,
                                                                             last_epoch=-1)
         else:
-            raise RuntimeError("Invalid scheduler name")
+            raise RuntimeError("Invalid scheduler: {}".format(self.train_params.scheduler))
 
         # self.model.apply(weights_init)
         # Switch to training mode
@@ -92,15 +102,23 @@ class CreateModel:
         targets = data["target_positions"].to(self.device)
         # Forward pass
         outputs = self.model(inputs).reshape(targets.shape)
-        self.loss = self.criterion(targets.float(), outputs.float(), target_availabilities.float())
+        loss = self.criterion(targets.float(), outputs.float(), target_availabilities.float())
 
         self.optimizer.zero_grad()
-        self.loss.backward()
+        loss.backward()
+
+        self.running_loss += loss.item()
+        self.running_batch += len(inputs)
+        self.loss = self.running_loss / self.running_batch
 
         # Apply gradient clipping avoid gradient exploding
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.train_params.get("grad_clip", 2))
 
         self.optimizer.step()
+
+    def reset_running_states(self):
+        self.running_loss = 0
+        self.running_batch = 0
 
     def get_current_states(self):
         states_ret = OrderedDict()
