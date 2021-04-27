@@ -1,4 +1,5 @@
 import torch
+import timm
 import torch.nn as nn
 import torchvision.models as torch_models
 
@@ -72,6 +73,33 @@ class resnet28(nn.Module):
 
     def forward(self, x):
         x = self.backbone(x)
+        pred_pos = self.pred_pos(x)
+        return pred_pos
+
+
+class xception(nn.Module):
+    def __init__(self, in_channel, image_size, out_features, use_pool, use_dropout):
+        super().__init__()
+        assert use_pool, "Must use pool for Xception"
+
+        self.backbone = timm.create_model("xception41", pretrained=True, in_chans=in_channel)
+        net_list = []
+        if use_pool:
+            net_list += [nn.AdaptiveAvgPool2d((1, 1))]
+        net_list += [Flatten()]
+
+        if use_dropout:
+            net_list += [nn.Dropout()]
+        if use_pool:
+            net_list += [nn.Linear(in_features=2048, out_features=4096)]
+        else:
+            pass
+
+        net_list += [nn.Linear(4096, out_features=out_features)]
+        self.pred_pos = nn.Sequential(*net_list)
+
+    def forward(self, x):
+        x = self.backbone.forward_features(x)
         pred_pos = self.pred_pos(x)
         return pred_pos
 
