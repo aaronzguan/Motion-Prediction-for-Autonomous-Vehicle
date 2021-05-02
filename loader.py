@@ -37,13 +37,16 @@ class lyft_loader:
             raise
 
         rasterizer = build_rasterizer(cfg, dm)
-        dataset = AgentDataset(cfg, zarr, rasterizer, agents_mask=agents_mask)
-        self.dataloader = DataLoader(dataset, shuffle=loader_cfg["shuffle"], batch_size=loader_cfg["batch_size"],
+        self.dataset = AgentDataset(cfg, zarr, rasterizer, agents_mask=agents_mask)
+        self.dataloader = DataLoader(self.dataset, shuffle=loader_cfg["shuffle"], batch_size=loader_cfg["batch_size"],
                                      num_workers=loader_cfg["num_workers"])
         self.loader_iter = iter(self.dataloader)
 
     def get_loader(self):
         return self.dataloader
+
+    def get_dataset(self):
+        return self.dataset
 
     def next(self):
         try:

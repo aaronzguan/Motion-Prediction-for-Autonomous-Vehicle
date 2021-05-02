@@ -96,19 +96,28 @@ class CreateModel:
         self.scheduler.step()
         self.lr = self.optimizer.param_groups[0]['lr']
 
-    def optimize_parameters(self, data):
+    def get_output(self, image):
+        image = image.to(self.device)
+        outputs = self.model(image)
+        return outputs
+
+    def forward(self, data):
         inputs = data["image"].to(self.device)
         target_availabilities = data["target_availabilities"].to(self.device)
         targets = data["target_positions"].to(self.device)
         # Forward pass
         outputs = self.model(inputs).reshape(targets.shape)
         loss = self.criterion(targets.float(), outputs.float(), target_availabilities.float())
+        return loss, outputs
+
+    def optimize(self, data):
+        loss, _ = self.forward(data)
 
         self.optimizer.zero_grad()
         loss.backward()
 
         self.running_loss += loss.item()
-        self.running_batch += len(inputs)
+        self.running_batch += len(data["image"])
         self.loss = self.running_loss / self.running_batch
 
         # Apply gradient clipping avoid gradient exploding
@@ -141,6 +150,9 @@ class CreateModel:
             torch.save(self.model.cpu().state_dict(), save_path)
 
         self.model.to(self.device)
+
+    def load_model(self, checkpoint_path):
+        self.model.load_state_dict(torch.load(checkpoint_path))
 
     def train(self):
         self.model.train()

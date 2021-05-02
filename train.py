@@ -23,9 +23,6 @@ if __name__ == '__main__':
     train_params = DotDict(cfg["train_params"])
     model.train_setup(train_params)
 
-    # TODO: Modify the eval_params
-    # eval_params = DotDict(cfg["eval_params"])
-
     pbar = tqdm(range(1, train_params.epochs + 1), ncols=0)
     iters = 0
     for epoch in pbar:
@@ -34,7 +31,7 @@ if __name__ == '__main__':
 
         data_iter = tqdm(train_loader, position=0, leave=True, ascii=True)
         for batch_idx, data in enumerate(data_iter):
-            model.optimize_parameters(data)
+            model.optimize(data)
 
             if iters % train_params.log_every_n_step == 0:
                 states = model.get_current_states()
@@ -54,12 +51,10 @@ if __name__ == '__main__':
             iters += 1
 
         if epoch % train_params.eval_freq == 0:
-            # TODO: Implement the evaluation using validate dataset
-            # validate.run(model, eval_params=eval_params, dataloader=val_loader)
-            # description = 'Eval Epoch: {}|{} '.format(epoch, train_params.epochs)
-            # pbar.set_description(desc=description)
-            # save_log(description, checkpoint_dir=model_params.checkpoints_dir)
-            pass
+            eval_loss, _, _, _ = validate.run(model, dataloader=val_loader)
+            description = 'Eval Epoch: {}/{} loss: {:.4f}'.format(epoch, train_params.epochs, eval_loss)
+            pbar.set_description(desc=description)
+            save_log(description, checkpoint_dir=model_params.checkpoints_dir)
 
         model.scheduler_step()
 
