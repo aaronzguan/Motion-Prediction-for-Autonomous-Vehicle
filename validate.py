@@ -11,7 +11,6 @@ from l5kit.evaluation import write_pred_csv, compute_metrics_csv, read_gt_csv
 from l5kit.evaluation.metrics import neg_multi_log_likelihood, time_displace
 from l5kit.dataset import EgoDataset
 from l5kit.rasterization import build_rasterizer
-from l5kit.evaluation import read_gt_csv
 from l5kit.visualization import PREDICTED_POINTS_COLOR, TARGET_POINTS_COLOR, draw_trajectory
 import matplotlib.pyplot as plt
 
@@ -109,7 +108,7 @@ def visualize(model, eval_gt_path, eval_dataset, eval_ego_dataset):
 
 if __name__ == "__main__":
     # TODO: modify the checkpoint path
-    checkpoint_path = "./checkpoints/xception_NLL_20210427-163322/xception_step272400_epoch1.pth"
+    checkpoint_path = "./checkpoints/resnet28_NLL_20210423-011023/resnet28_step288300_epoch1.pth"
     run_validation = False
     run_visualization = True
 

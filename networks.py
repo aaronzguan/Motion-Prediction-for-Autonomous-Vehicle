@@ -109,7 +109,7 @@ class densenet121(nn.Module):
     We use the torchvision model for convenient.
     """
     def __init__(self, in_channel, image_size, out_features, use_pool, use_dropout):
-        net_list = list(list(torch_models.densenet121(pretrained=False).children())[:-1][0])
+        net_list = list(list(torch_models.densenet121(pretrained=True).children())[:-1][0])
         net_list[0] = torch.nn.Conv2d(in_channel, 64, kernel_size=3, stride=1, padding=1, bias=False)
         if use_pool:
             net_list += [nn.AdaptiveAvgPool2d((1, 1))]
