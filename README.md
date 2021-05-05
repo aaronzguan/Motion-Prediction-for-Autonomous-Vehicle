@@ -4,7 +4,7 @@
 
 ![frame_695299_pred](./visualize_xception/frame_695299_pred.png)
 
-This is the final project of CMU 16824 Visual Learning and Recognition. We designed a simple regression CNN pipeline to predict the agents' motion for the autonomous vehicle and trained on multi-channel images with negative log-likelihood loss function. 
+This is the final project of CMU 16824 Visual Learning and Recognition. We designed a simple regression CNN pipeline to predict the agents' motion for the autonomous vehicle and trained on multi-channel images with negative log-likelihood loss function. The supported backbones include ResNet28, Xception41, and DenseNet121.
 
 This repo heavily rely on the l5kit tool, please follow below steps to install dependencies and download the Lyft dataset first.
 
@@ -60,6 +60,8 @@ This repo heavily rely on the l5kit tool, please follow below steps to install d
 
 
 
-## Report
+## Extra
 
 Final report will come soon!
+
+Please raise issues or [contact me](mailto:aaron.z.guan@hotmail.com) if you need our trained models for ResNet28 and Xception41.
