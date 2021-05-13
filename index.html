@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Project Title</title>
+  <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+  <link href="css/frame.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="css/controls.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="css/custom.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,700' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="js/menu.js"></script>
+  <style>
+    .menu-index {
+      color: rgb(255, 255, 255) !important;
+      opacity: 1 !important;
+      font-weight: 700 !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="menu-container"></div>
+  <div class="content-container">
+    <div class="content">
+      <div class="content-table flex-column">
+        <!-------------------------------------------------------------------------------------------->
+          <br><center><span style="font-size:44px;font-weight:bold;"> Motion Prediction for Autonomous Vehicles</span></center><br/>
+        <!--Start Intro-->
+        <div class="flex-row">
+          <div class="flex-item flex-column">
+            <img class="image" src="img/motion-prediction.png">
+          </div>
+          <div class="flex-item flex-column">
+            <p class="text text-large">
+              <a target="_blank" href="http://aaronguan.com/">Aaron Guan</a>, zhongg@andrew.cmu.edu<br>
+              <a target="_blank" href="https://www.linkedin.com/in/yiigu/">Yi Gu</a>, yig2@andrew.cmu.edu<br>
+              <a target="_blank" href="https://www.linkedin.com/in/wanzhizhang">Wanzhi Zhang</a>, wanzhiz@andrew.cmu.edu<br>
+              Robotics Institute<br>
+              Carnegie Mellon University<br>
+            </p>
+          </div>
+        </div>
+        <div class="flex-row">
+          <div class="flex-item flex-column">
+            <p class="text add-top-margin">
+                The next generation transportation system is one of the most important research topics to resolve problems such as traffic accidents, traffic congestion, and environmental degradation. Among the components of the system, autonomous vehicles (AVs) have been drawing increasing attention over the last decade from academia, industry, and government. In order for the AVs to plan good enough future trajectories, the self-driving car should make predictions of other agent's next movement, such as other vehicles, pedestrians, and etc. In this project, we designed a CNN regression pipeline to predict surrounding agent’s motion over 5 seconds given a historical 5 second bird-eyes-view images. ResNet28 [1] and XceptionNet41 [2] are used as the backbone and Negative Log Likelihood (NLL) is used as the loss function. 
+            </p>
+              
+              <a class="image adaptive-image" style="background-image: url('img/pipeline.png'); min-height: 200px;" target="_blank"></a>
+              <div class="image-caption">Figure 1: Full pipeline of the autonomous vehicle decision-making system from sensory input to path planning. The task of this project is outlined in red.</div>
+          </div>
+        </div>
+        <!--End Intro-->
+        <!-------------------------------------------------------------------------------------------->
+        <!--dataset-->
+        <div class="flex-row">
+          <div class="flex-item flex-column">
+            <h2 class="add-top-margin">Dataset</h2>
+            <hr>
+            <p class="text">
+              In this project, we selected Lyft dataset [3] as our training dataset. The dataset is the largest collection of the traffic agent motion data. The dataset includes 1000+ hours of traffic agent movement, 16k miles of data from 23 vehicles and 15k semantic map annotations. The dataset consists of 170,000 scenes capturing the environment around the autonomous vehicle. Each scene encodes the state of the vehicle’s surroundings at a given point in time. One example of the agent and its history on the semantic map is shown in Figure 2.
+            </p>
+            <div class="flex-row-space-between">
+                <div class="flex-item flex-column">
+                    <img class="image max-width-350" src="img/motion_dataset_example.gif">
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-350" src="img/motion_dataset_with_captions.png">
+                </div>
+                <p class="image-caption">Figure 2: Semantic map with agent cars and road lines</p>
+            </div>
+              <p class="text">
+                  To process the dataset, we utilize the l5kit library, which is a python software library that can preprocess and visualize the lyft dataset. We extract the dataset from .zarr files, which has helped us split the dataset into training, validate and test set. In our project, we used training set to train our models and validate set to evaluate the models performance. The dataset contains 4 arrays, which are agents, frames, scenes, and traffic light faces. L5kit contains several dataset package that already implements pytorch-ready dataset. There are two kinds of dataset could be used: EgoDataset and AgentDataset. EgoDataset iterates over the AV annotations. AgentDataset iterates other agents annotations. Both of them can be iterated and return multi-channel images and future trajectories offsets from the rasterizer. In this project, our task is to predict surrounding agents motions, so we only used AgentDataset to train and evaluate our models. Other dataset package that we used is ChunkedDataset, which could help to make zarr dataset object.
+              </p>
+          </div>
+        </div>
+        <!-------------------------------------------------------------------------------------------->
+        <!--Method-->
+        <div class="flex-row">
+           <div class="flex-item flex-column">
+            <h2 class="add-top-margin">Method</h2>
+               <hr>
+               <p class="text"> 
+               We used ResNet and Xception as the backbone. Considering our goal is to predict the surrounding agents motions of the autonomous vehicle over a 5-second-horizon given their 5 second historical positions and current position, we need 50 historical frames and 1 current frame, in which the distance of each two continuing frames are 0.1 second. Each frame contains the ego car and agents that are on different channels. So our input can be represented as an image with 3+(50+1) x 2=105 channels. Here the first 3 channels are the RGB map. Then we have 50 history time steps and one current time step. Every step is represented by two channels: (1) The mask representing the location of the current agent, and (2) the mask representing all other agents nearby. Because we want to output the next 5 second agents motions, we need 50 frames, which could be represented as 50 coordinates in two axes. Since, We only predict 1 trajectory, we set our output size as 50 x 2 = 100.
+               </p>
+               <a class="image adaptive-image" style="background-image: url('img/architecture.png'); min-height: 280px;" target="_blank"></a>
+               <div class="image-caption">Figure 3: CNN model architecture.</div>
+               
+               <p class="text">
+                Our backbone uses ResNet and Xception followed by one fully-connected layer which takes an input image with C channels and predicts 1 trajectory. We used use negative log-likelihood (NLL) of the ground truth in the distribution defined by the prediction as our evaluation metric. Given the ground truth trajectory GT and K predicted trajectory hypotheses, we compute the likelihood of the ground truth trajectory under the mixture of Gaussians with the means equal to the predicted trajectories and the Identity matrix as a covariance. The likelihood is yielded as:
+               </p>
+               <img src="https://latex.codecogs.com/svg.image?p\left(x_{1,&space;\ldots,&space;T},&space;y_{1,&space;\ldots,&space;T}&space;\mid&space;c^{1,&space;\ldots,&space;K},&space;\bar{x}_{1,&space;\ldots,&space;T}^{1,&space;\ldots,&space;K},&space;\bar{y}_{1,&space;\ldots,&space;T}^{1,&space;\ldots,&space;K}\right)&space;\\=\sum_{k}&space;c^{k}&space;\mathcal{N}\left(x_{1,&space;\ldots,&space;T}&space;\mid&space;\bar{x}_{1,&space;\ldots,&space;T}^{k},&space;\Sigma=1\right)&space;\mathcal{N}\left(y_{1,&space;\ldots,&space;T}&space;\mid&space;\bar{y}_{1,&space;\ldots,&space;T}^{k},&space;\Sigma=1\right)&space;\\=\sum_{k}&space;c^{k}&space;\prod_{t}&space;\mathcal{N}\left(x_{t}&space;\mid&space;\bar{x}_{t}^{k},&space;\sigma=1\right)&space;\mathcal{N}\left(y_{t}&space;\mid&space;\bar{y}_{t}^{k},&space;\sigma=1\right)" title="p\left(x_{1, \ldots, T}, y_{1, \ldots, T} \mid c^{1, \ldots, K}, \bar{x}_{1, \ldots, T}^{1, \ldots, K}, \bar{y}_{1, \ldots, T}^{1, \ldots, K}\right) \\=\sum_{k} c^{k} \mathcal{N}\left(x_{1, \ldots, T} \mid \bar{x}_{1, \ldots, T}^{k}, \Sigma=1\right) \mathcal{N}\left(y_{1, \ldots, T} \mid \bar{y}_{1, \ldots, T}^{k}, \Sigma=1\right) \\=\sum_{k} c^{k} \prod_{t} \mathcal{N}\left(x_{t} \mid \bar{x}_{t}^{k}, \sigma=1\right) \mathcal{N}\left(y_{t} \mid \bar{y}_{t}^{k}, \sigma=1\right)" />
+               <p>Therefore, the NLL loss can be computed as:</p>
+               <img src="https://latex.codecogs.com/svg.image?L=-\log&space;p\left(x_{1,&space;\ldots,&space;T},&space;y_{1,&space;\ldots,&space;T}&space;\mid&space;c^{1,&space;\ldots,&space;K},&space;\bar{x}_{1,&space;\ldots,&space;T}^{1,&space;\ldots,&space;K},&space;\bar{y}_{1,&space;\ldots,&space;T}^{1,&space;\ldots,&space;K}\right)&space;\\=-\log&space;\sum_{k}&space;e^{\log&space;\left(c^{k}\right)&plus;\sum_{t}&space;\log&space;\mathcal{N}\left(x_{t}&space;\mid&space;\bar{x}_{t}^{k},&space;\sigma=1\right)&space;\mathcal{N}\left(y_{t}&space;\mid&space;\bar{y}_{t}^{k},&space;\sigma=1\right)}&space;\\=-\log&space;\sum_{k}&space;e^{\log&space;\left(c^{k}\right)-\frac{1}{2}&space;\sum_{t}\left(\bar{x}_{t}^{k}-x_{t}\right)^{2}&plus;\left(\bar{y}_{t}^{k}-y_{t}\right)^{2}}" title="L=-\log p\left(x_{1, \ldots, T}, y_{1, \ldots, T} \mid c^{1, \ldots, K}, \bar{x}_{1, \ldots, T}^{1, \ldots, K}, \bar{y}_{1, \ldots, T}^{1, \ldots, K}\right) \\=-\log \sum_{k} e^{\log \left(c^{k}\right)+\sum_{t} \log \mathcal{N}\left(x_{t} \mid \bar{x}_{t}^{k}, \sigma=1\right) \mathcal{N}\left(y_{t} \mid \bar{y}_{t}^{k}, \sigma=1\right)} \\=-\log \sum_{k} e^{\log \left(c^{k}\right)-\frac{1}{2} \sum_{t}\left(\bar{x}_{t}^{k}-x_{t}\right)^{2}+\left(\bar{y}_{t}^{k}-y_{t}\right)^{2}}" />
+               <p class="text"> The above loss funcion is originally designed for multiple hypothesis, but in this project we only have one trajectory hypothesis as output with confidence score of 1. Therefore, we set <i>k = 1</i> and <i>c = 1</i> for the loss function.</p>
+            </div>
+          </div>
+          
+        <!-------------------------------------------------------------------------------------------->
+        <!--Result-->
+        <div class="flex-row">
+           <div class="flex-item flex-column">
+            <h2 class="add-top-margin">Result</h2>
+            <hr>
+               <p class="text"> 
+                   We resized the image as 224 x 224 and used the batch size of 32. SGD optimizer with learning rate of 0.001 is used to train the network. We used pytorch to implement the models. We did not have time to train all the models until convergence. Given the limited time and resources, we trained the models with 1 Tesla T4 GPU trained with ~280000 iterations for about 100h on AWS for each backbone. Figure 4 shows the training loss of both ResNet28 and XceptionNet41. As shown in the figure, the XceptionNet41 outperforms the ResNet28.
+               </p>
+               <img class="image center max-width-400 add-top-margin-small" src="img/loss.png">
+               <div class="image-caption">Figure 4: Training loss of ResNet28 and XceptionNet41.</div>
+               
+               To better validate our trained network, we visualize the ground truth trajectory and predicted trajectories on the semantic road map for the validation dataset. In these visualizations, the magenta trajectory is the ground truth trajectory, and the cyan trajectory is the predicted trajectory. Those blue boxes are the agent cars, and the one green box is the ego car. We can see both ResNet and Xception can predict the correct trajectory for simple scenario where the ground truth trajectory is almost a straight line.
+               
+               <div class="flex-row-space-between">
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_209299_gt.png">
+                    <p class="image-caption">Frame # 209299: Ground Truth</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_209299_resnet_pred.png">
+                    <p class="image-caption">Frame # 209299: ResNet Prediction</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_209299_xcept_pred.png">
+                    <p class="image-caption">Frame # 209299: Xception Prediction</p>
+                </div>
+               </div>
+               
+               For more complicated scenario, we can clearly see that the Xception can generate almost the same trajectory as the ground truth trajectory while the resnet failed to predict the correct trajectories. For those scenario involving the negotiation at intersection, we can observe some agents car stop at the intersection waiting for the traffic light and there are some cars making their turn. Both ResNet and Xception can have similar predicted trajectories as the ground truth trajectory. But the key difference her is that the Xception have a better prediction about the turning direction and angle for the agent cars.
+
+               <div class="flex-row-space-between">
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_891099_gt.png">
+                    <p class="image-caption">Frame # 891099: Ground Truth</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_891099_resnet_pred.png">
+                    <p class="image-caption">Frame # 891099: ResNet Prediction</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_891099_xcept_pred.png">
+                    <p class="image-caption">Frame # 891099: Xception Prediction</p>
+                </div>
+               </div>
+
+               <div class="flex-row-space-between">
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_1576699_gt.png">
+                    <p class="image-caption">Frame # 157669: Ground Truth</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_1576699_resnet_pred.png">
+                    <p class="image-caption">Frame # 157669: ResNet Prediction</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_1576699_xcept_pred.png">
+                    <p class="image-caption">Frame # 157669: Xception Prediction</p>
+                </div>
+               </div>
+               
+               <div class="flex-row-space-between">
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_695299_gt.png">
+                    <p class="image-caption">Frame # 695299: Ground Truth</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_695299_resnet_pred.png">
+                    <p class="image-caption">Frame # 695299: ResNet Prediction</p>
+                </div>
+                <div class="flex-item flex-column">
+                    <img class="image max-width-200" src="img/frame_695299_xcept_pred.png">
+                    <p class="image-caption">Frame # 695299: Xception Prediction</p>
+                </div>
+               </div>
+               
+            </div>
+          </div>
+          
+        <!-------------------------------------------------------------------------------------------->
+        <!--Conclusion--> 
+        <div class="flex-row">
+           <div class="flex-item flex-column">
+            <h2 class="add-top-margin">Conclusion</h2>
+            <hr>
+               
+            </div>
+          </div>
+        
+        <div class="flex-row">
+           <div class="flex-item flex-column">
+            <h2 class="add-top-margin">Reference</h2>
+            <hr>
+               <ol>
+              <li>
+                <p class="text-small-margin">
+                  Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition, 2015.
+                </p>
+              </li>
+              <li>
+                <p class="text-small-margin">
+                  Franc ̧ois Chollet. Xception: Deep learning with depthwise separable convolutions, 2017.
+                </p>
+              </li>
+              <li>
+                <p class="text-small-margin">
+                  John  Houston,  Guido  Zuidhof,  Luca  Bergamini,  Yawei Ye,  Long  Chen,  Ashesh  Jain,  Sammy  Omari,  Vladimir Iglovikov,  and  Peter  Ondruska.   One  thousand  and  one hours: Self-driving motion prediction dataset, 2020.
+                </p>
+              </li>
+            </ol>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
