@@ -184,7 +184,9 @@
            <div class="flex-item flex-column">
             <h2 class="add-top-margin">Conclusion</h2>
             <hr>
+            We developed a simple yet effective deep learning regression pipeline to predict the motion of autonomous vehicles.  We used ResNet and Xception as the backbone and Xception outperforms the ResNet in our experiment. We used the Negative Log likelihood as the loss function and the prediction result is really promising. We also visualized the predicted trajectories on the semantic map of the lyft dataset and the predicted trajectories are almost the same as the ground truth and the system can also predict reasonable trajectories in complicated scenario involving negotiation at intersection.
                
+            In this future, we will train more models using different backbones and ensemble these trained models to generate better prediction trajectory. In this project, we only generate 1 prediction trajectory. However, in reality there are multiple possible trajectories for the agent cars. Therefore, we aim to generate more trajectories with thier confidence scores. In this project, we only used the NLL as loss function. We can also try other loss functions such as L1/L2 loss. After we can generate robust prediction trajectory for agent cars, we can then develop the module to predict the ego car's future trajectory based on our prediction result.
             </div>
             
         </div>
