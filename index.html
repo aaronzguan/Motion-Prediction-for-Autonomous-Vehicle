@@ -110,9 +110,11 @@
                </p>
                <img class="image center max-width-400 add-top-margin-small" src="img/loss.png">
                <div class="image-caption">Figure 4: Training loss of ResNet28 and XceptionNet41.</div>
-               
+
+                <p class="text"> 
                To better validate our trained network, we visualize the ground truth trajectory and predicted trajectories on the semantic road map for the validation dataset. In these visualizations, the magenta trajectory is the ground truth trajectory, and the cyan trajectory is the predicted trajectory. Those blue boxes are the agent cars, and the one green box is the ego car. We can see both ResNet and Xception can predict the correct trajectory for simple scenario where the ground truth trajectory is almost a straight line.
-               
+               </p>
+
                <div class="flex-row-space-between">
                 <div class="flex-item flex-column">
                     <img class="image max-width-200" src="img/frame_209299_gt.png">
@@ -127,8 +129,9 @@
                     <p class="image-caption">Frame # 209299: Xception Prediction</p>
                 </div>
                </div>
-               
-               For more complicated scenario, we can clearly see that the Xception can generate almost the same trajectory as the ground truth trajectory while the resnet failed to predict the correct trajectories. For those scenario involving the negotiation at intersection, we can observe some agents car stop at the intersection waiting for the traffic light and there are some cars making their turn. Both ResNet and Xception can have similar predicted trajectories as the ground truth trajectory. But the key difference her is that the Xception have a better prediction about the turning direction and angle for the agent cars.
+
+               <p class="text"> 
+               For more complicated scenario, we can clearly see that the Xception can generate almost the same trajectory as the ground truth trajectory while the resnet failed to predict the correct trajectories. For those scenario involving the negotiation at intersection, we can observe some agents car stop at the intersection waiting for the traffic light and there are some cars making their turn. Both ResNet and Xception can have similar predicted trajectories as the ground truth trajectory. But the key difference her is that the Xception have a better prediction about the turning direction and angle for the agent cars.　</p>
 
                <div class="flex-row-space-between">
                 <div class="flex-item flex-column">
@@ -184,10 +187,13 @@
            <div class="flex-item flex-column">
             <h2 class="add-top-margin">Conclusion</h2>
             <hr>
+　　　　　　　　　　　　<p class="text"> 
             We developed a simple yet effective deep learning regression pipeline to predict the motion of autonomous vehicles.  We used ResNet and Xception as the backbone and Xception outperforms the ResNet in our experiment. We used the Negative Log likelihood as the loss function and the prediction result is really promising. We also visualized the predicted trajectories on the semantic map of the lyft dataset and the predicted trajectories are almost the same as the ground truth and the system can also predict reasonable trajectories in complicated scenario involving negotiation at intersection.
-               
+　　　　　　　　　　　　</p>
+            <p class="text"> 
             In this future, we will train more models using different backbones and ensemble these trained models to generate better prediction trajectory. In this project, we only generate 1 prediction trajectory. However, in reality there are multiple possible trajectories for the agent cars. Therefore, we aim to generate more trajectories with thier confidence scores. In this project, we only used the NLL as loss function. We can also try other loss functions such as L1/L2 loss. After we can generate robust prediction trajectory for agent cars, we can then develop the module to predict the ego car's future trajectory based on our prediction result.
-            </div>
+            </p>
+　　　　　　　　　　</div>
             
         </div>
           
