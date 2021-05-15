@@ -60,10 +60,14 @@
           <div class="flex-item flex-column">
            <h2 class="add-top-margin">Related Works</h2>
            <hr>
+           <h3>Motion Prediction Models</h3>
 　　　　　　 <p class="text"> 
-           Deep Residual Networks, introduced by He et al. in [1], applied shortcut connections to preserve gradients and allows for deeper networks. It has been empirically shown to increase performance in ImageNet classification and has been widely used since.　　　　　　　　　　　　</p>
-           <p class="text"> 
-          Xception [2] by Google, built upon Inception and residual connections, utilizes depth-wise separable convolution (a depthwise convolution followed by a pointwise convolution) in neural computer vision architectures and allows for a more efficient use of model parameters.
+            Traditionally, motional models were used to predict motion and access risks for autonomous vehicles. These models can be categorized into three classes, with an increasing degree of abstraction. The most basic approach is physics-based motion models which assumes the motion of vehicles only depends on the laws of physics. Maneuver-based motion models are more advanced in that they consider the maneuver that the driver intends to perform to predict vehicles motion. Finally there are interaction-aware motion models which takes into account the inter-dependencies between different vehicles’ maneuvers.
+           <h3>Convolutional Neural Networks</h3>
+　　　　　　 <p class="text"> 
+          Considering the complex nature of the task, there have been works that introduce CNNs to predict the intention of surrounding vehicles. [4] introduced a convolution-deconvolution architecture to predict vehicle behaviour to predict the intention of surrounding vehicles by utilizing a six layer CNN with convolution and fully connected layers. It uses two backbone CNNs to extract the features from lidar and dynamic maps, and another three to detect and predict the motion.
+          <p class="text"> 
+          In our work, we used ResNet28 and XceptionNet41 as the backbone. Deep Residual Networks was introduced by He et al. in [1], and applied shortcut connections to preserve gradients and allows for deeper networks. It has been empirically shown to increase performance in ImageNet classification and has been widely used since. Xception [2] by Google was built upon Inception and residual connections, and utilizes depth-wise separable convolution (a depthwise convolution followed by a pointwise convolution) in neural computer vision architectures and allows for a more efficient use of model parameters.
           </p>
 　　　　　　　　　　</div>
            
@@ -247,6 +251,10 @@
                 <p class="text-small-margin">
                   John  Houston,  Guido  Zuidhof,  Luca  Bergamini,  Yawei Ye,  Long  Chen,  Ashesh  Jain,  Sammy  Omari,  Vladimir Iglovikov,  and  Peter  Ondruska.   One  thousand  and  one hours: Self-driving motion prediction dataset, 2020.
                 </p>
+              </li>
+              <li>
+                <p class="text-small-margin">
+                  W. Luo, B. Yang, and R. Urtasun, “Fast and furious: Real time end-to-end 3d detection, tracking and motion forecasting with a single convolutional net,” in The IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018.                </p>
               </li>
             </ol>
             </div>
